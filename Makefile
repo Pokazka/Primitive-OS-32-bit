@@ -9,7 +9,7 @@ LDFLAGS = -m32 -ffreestanding -O2 -nostdlib -Wl,-m,elf_i386 -T linker.ld
 
 OBJS = boot.o kernel.o
 
-all: myos.bin
+all: myos.bin disk.img
 
 boot.o: boot.s
 	$(AS) -f elf32 boot.s -o boot.o
@@ -21,8 +21,11 @@ kernel.o: kernel.c io.h vga.c keyboard.c ata.c
 myos.bin: $(OBJS) linker.ld
 	$(CC) -o myos.bin $(OBJS) $(LDFLAGS)
 
-run: myos.bin
-	$(QEMU) -kernel myos.bin
+disk.img:
+	qemu-img create -f raw disk.img 10M
+
+run: myos.bin disk.img
+	$(QEMU) -kernel myos.bin -drive file=disk.img,index=0,media=disk,format=raw -no-reboot -d int,cpu_reset
 
 clean:
 	rm -f *.o *.bin
