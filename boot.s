@@ -1,21 +1,23 @@
+[BITS 32]
+
 section .multiboot
 align 4
-    dd 0x1BADB002                           ; Multiboot magic
-    dd 0x00000003                           ; Flags: page-align + memory map
-    dd -(0x1BADB002 + 0x00000003)           ; Checksum
+    dd 0x1BADB002                   ; Magic number (Multiboot 1)
+    dd 0x00000003                   ; Flags
+    dd -(0x1BADB002 + 0x00000003)   ; Checksum
 
 section .text
 global _start
-extern kmain
+extern kernel_main
 
 _start:
-    mov esp, stack_top
-    push 0
-    popf                    ; Clear EFLAGS
-    push ebx                ; Multiboot info struct pointer
-    push eax                ; Multiboot magic number
-    call kmain
     cli
-.hang:
+    mov esp, stack_top
+    call kernel_main
     hlt
-    jmp .hang
+
+section .bss
+align 16
+stack_bottom:
+    resb 16384
+stack_top:
